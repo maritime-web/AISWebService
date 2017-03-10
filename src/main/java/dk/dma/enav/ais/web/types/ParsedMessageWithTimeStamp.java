@@ -17,32 +17,19 @@
 package dk.dma.enav.ais.web.types;
 
 import dk.dma.ais.message.AisMessage;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Created by Oliver on 04-12-2016.
  */
+@AllArgsConstructor
+@Getter
+@Setter
 public class ParsedMessageWithTimeStamp {
+    // An AIS message
     private AisMessage aisMessage;
+    // The time the message was received
     private String timeStamp;
-
-    public ParsedMessageWithTimeStamp(AisMessage aisMessage, String timeStamp) {
-        this.aisMessage = aisMessage;
-        this.timeStamp = timeStamp;
-    }
-
-    public AisMessage getAisMessage() {
-        return aisMessage;
-    }
-
-    public void setAisMessage(AisMessage aisMessage) {
-        this.aisMessage = aisMessage;
-    }
-
-    public String getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
-    }
 }

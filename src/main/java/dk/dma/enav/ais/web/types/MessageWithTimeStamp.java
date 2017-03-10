@@ -16,27 +16,18 @@
 
 package dk.dma.enav.ais.web.types;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Created by Oliver on 02-12-2016.
  */
+@Getter
+@Setter
 public class MessageWithTimeStamp {
 
+    // the AIS message as a byte array
     private byte[] message;
+    // the time the message was received
     private String timeStamp;
-
-    public byte[] getMessage() {
-        return message;
-    }
-
-    public void setMessage(byte[] message) {
-        this.message = message;
-    }
-
-    public String getTimeStamp() {
-        return timeStamp;
-    }
-
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
-    }
 }
