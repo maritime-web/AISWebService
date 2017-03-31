@@ -18,15 +18,16 @@ package dk.dma.enav.ais.web;
 
 import com.google.gson.JsonObject;
 import dk.dma.ais.binary.SixbitException;
+import dk.dma.ais.bus.AisBus;
 import dk.dma.ais.message.AisMessage;
 import dk.dma.ais.message.AisMessageException;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.sentence.SentenceException;
+import dk.dma.enav.ais.web.types.MessageWithTimeStamp;
+import dk.dma.enav.ais.web.types.ParsedMessageWithTimeStamp;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.lightcouch.CouchDbClient;
-import dk.dma.enav.ais.web.types.MessageWithTimeStamp;
-import dk.dma.enav.ais.web.types.ParsedMessageWithTimeStamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,14 +50,28 @@ public class AISWebService {
 
     private final Logger log = LoggerFactory.getLogger(AISWebService.class);
 
+    private AisBus aisBus;
+
+    @PostConstruct
+    private void postConstruct() {
+        AisBusConf aisBusConf = new AisBusConf();
+        AisBus aisBus = aisBusConf.provideAisBus();
+        AisBusInitializer aisBusInitializer = new AisBusInitializer(aisBus);
+        this.aisBus = aisBusInitializer.getAisBus();
+    }
+
 
     // to be able to receive message as plain string
     @RequestMapping(method = RequestMethod.POST, path = "/ais")
     public ResponseEntity postAIS(@RequestBody String aivdmString) {
         AisMessage aisMessage;
         try {
-            aisMessage = AisPacket.readFromString(aivdmString).tryGetAisMessage();
+            //aisMessage = AisPacket.readFromString(aivdmString).tryGetAisMessage();
+            AisPacket aisPacket = AisPacket.readFromString(aivdmString);
+            //if (aisBus == null) log.error("baaaa");
+            aisMessage = aisPacket.tryGetAisMessage();
             couchDbClient.save(aisMessage);
+            aisBus.push(aisPacket, true);
         } catch (SentenceException e) {
             log.error(e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -73,8 +89,10 @@ public class AISWebService {
             List<ParsedMessageWithTimeStamp> toBeStored = new ArrayList<>();
             messages.forEach(message -> {
                 try {
-                    AisMessage aisMessage = AisPacket.fromByteArray(message.getMessage()).getAisMessage();
-                    toBeStored.add(new ParsedMessageWithTimeStamp(aisMessage, message.getTimeStamp()));
+                    AisPacket aisPacket = AisPacket.fromByteArray(message.getMessage());
+                    aisBus.push(aisPacket);
+                    AisMessage aisMessage = aisPacket.getAisMessage();//AisPacket.fromByteArray(message.getMessage()).getAisMessage();
+                    //toBeStored.add(new ParsedMessageWithTimeStamp(aisMessage, message.getTimeStamp()));
                 } catch (AisMessageException e) {
                     log.error(e.getMessage());
                 } catch (SixbitException e) {
