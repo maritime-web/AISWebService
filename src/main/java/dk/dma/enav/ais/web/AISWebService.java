@@ -90,7 +90,7 @@ public class AISWebService {
             messages.forEach(message -> {
                 try {
                     AisPacket aisPacket = AisPacket.fromByteArray(message.getMessage());
-                    aisBus.push(aisPacket);
+                    aisBus.push(aisPacket, true);
                     AisMessage aisMessage = aisPacket.getAisMessage();//AisPacket.fromByteArray(message.getMessage()).getAisMessage();
                     //toBeStored.add(new ParsedMessageWithTimeStamp(aisMessage, message.getTimeStamp()));
                 } catch (AisMessageException e) {

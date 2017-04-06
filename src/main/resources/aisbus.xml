@@ -15,6 +15,7 @@
   ~ limitations under the License.
   -->
 <aisBusConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <transformer xsi:type="timestampTaggingTransformerConfiguration"/>
     <consumer xsi:type="tcpServerConsumerConfiguration">
         <name>Output</name>
         <serverConf>
