@@ -111,59 +111,59 @@ public class TestAIS {
         assertEquals(202, response.getStatus());
     }
 
-    /*
-     * Tests getting the past 24 hours of messages for the mmsi number 477553000
-     */
-    @Test
-    public void testLast24Hours() {
-        String response = target.path("/last24Hours").queryParam("mmsi", "477553000").request().get(String.class);
-        Gson gson = new Gson();
-        JsonArray jsonElements = gson.fromJson(response, JsonArray.class);
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        DateTime yesterDay = now.minusDays(1);
-        jsonElements.forEach(jsonElement -> {
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            DateTime timeStamp = DateTime.parse(jsonObject.get("timeStamp").getAsString());
-            assertTrue(timeStamp.isAfter(yesterDay) && timeStamp.isBefore(now));
-            assertEquals("477553000", jsonObject.getAsJsonObject("aisMessage").get("userId").getAsString());
-        });
-    }
-
-    /*
-     * Tests getting the latest message for the mmsi number 477553000
-     */
-    @Test
-    public void testGetLatest() {
-        String response = target.path("/latest").queryParam("mmsi", "477553000").request().get(String.class);
-        Gson gson = new Gson();
-        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        // assert that the latest message is not older than 1 minute
-        DateTime before = now.minusMinutes(1);
-
-        // get the time stamp from the received message and check that it is correct
-        DateTime messageTime = DateTime.parse(jsonObject.get("timeStamp").getAsString());
-        assertTrue(messageTime.isBefore(now) && messageTime.isAfter(before));
-        assertEquals("477553000", jsonObject.getAsJsonObject("aisMessage").get("userId").getAsString());
-    }
-
-    /*
-     * Tests getting all unique mmsi numbers from the CouchDB database
-     */
-    @Test
-    public void testGetAllMMSINumbers() {
-        String response = target.path("/allVessels").request().get(String.class);
-        Gson gson = new Gson();
-        JsonArray jsonArray = gson.fromJson(response, JsonArray.class);
-        // assert that there are at least one element in returned array
-        assertTrue(jsonArray.size() > 0);
-        JsonObject expected = new JsonObject();
-        // assert that the mmsi number of the sample message is in the returned array
-        expected.addProperty("key", 477553000);
-        expected.addProperty("value", true);
-        assertTrue(jsonArray.contains(expected));
-    }
-
+//    /*
+//     * Tests getting the past 24 hours of messages for the mmsi number 477553000
+//     */
+//    @Test
+//    public void testLast24Hours() {
+//        String response = target.path("/last24Hours").queryParam("mmsi", "477553000").request().get(String.class);
+//        Gson gson = new Gson();
+//        JsonArray jsonElements = gson.fromJson(response, JsonArray.class);
+//        DateTime now = DateTime.now(DateTimeZone.UTC);
+//        DateTime yesterDay = now.minusDays(1);
+//        jsonElements.forEach(jsonElement -> {
+//            JsonObject jsonObject = jsonElement.getAsJsonObject();
+//            DateTime timeStamp = DateTime.parse(jsonObject.get("timeStamp").getAsString());
+//            assertTrue(timeStamp.isAfter(yesterDay) && timeStamp.isBefore(now));
+//            assertEquals("477553000", jsonObject.getAsJsonObject("aisMessage").get("userId").getAsString());
+//        });
+//    }
+//
+//    /*
+//     * Tests getting the latest message for the mmsi number 477553000
+//     */
+//    //@Test
+//    public void testGetLatest() {
+//        String response = target.path("/latest").queryParam("mmsi", "477553000").request().get(String.class);
+//        Gson gson = new Gson();
+//        JsonObject jsonObject = gson.fromJson(response, JsonObject.class);
+//        DateTime now = DateTime.now(DateTimeZone.UTC);
+//        // assert that the latest message is not older than 1 minute
+//        DateTime before = now.minusMinutes(1);
+//
+//        // get the time stamp from the received message and check that it is correct
+//        DateTime messageTime = DateTime.parse(jsonObject.get("timeStamp").getAsString());
+//        assertTrue(messageTime.isBefore(now) && messageTime.isAfter(before));
+//        assertEquals("477553000", jsonObject.getAsJsonObject("aisMessage").get("userId").getAsString());
+//    }
+//
+//    /*
+//     * Tests getting all unique mmsi numbers from the CouchDB database
+//     */
+//    @Test
+//    public void testGetAllMMSINumbers() {
+//        String response = target.path("/allVessels").request().get(String.class);
+//        Gson gson = new Gson();
+//        JsonArray jsonArray = gson.fromJson(response, JsonArray.class);
+//        // assert that there are at least one element in returned array
+//        assertTrue(jsonArray.size() > 0);
+//        JsonObject expected = new JsonObject();
+//        // assert that the mmsi number of the sample message is in the returned array
+//        expected.addProperty("key", 477553000);
+//        expected.addProperty("value", true);
+//        assertTrue(jsonArray.contains(expected));
+//    }
+//
     // function used for sending an AIS message to the web service using a PUT operation
     private Response putAIS() {
         byte[] aisBytes = scanner.nextLine().getBytes();

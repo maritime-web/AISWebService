@@ -38,6 +38,7 @@ import static java.lang.System.exit;
  *
  * Functions borrowed from AisTrackServiceConfiguration
  */
+@Configuration
 public class AisBusConf {
 
     @Value("${dk.dma.enav.ais.web.AisBusConf.aisbusxml}")
@@ -45,6 +46,7 @@ public class AisBusConf {
 
     private final static Logger LOG = LoggerFactory.getLogger(AisBusConf.class);
 
+    @Bean
     public AisBus provideAisBus() {
         AisBus aisBus = null;
         try {

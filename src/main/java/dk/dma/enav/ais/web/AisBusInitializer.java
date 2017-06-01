@@ -37,10 +37,10 @@ public class AisBusInitializer {
 
     public AisBusInitializer(AisBus aisBus) {
         this.aisBus = aisBus;
-        this.onContextRefresh();
+        this.initAisBus();
     }
 
-    private void onContextRefresh() {
+    private void initAisBus() {
         Objects.requireNonNull(aisBus);
         executorService.submit(() -> {
             LOG.info("Starting AisBus");

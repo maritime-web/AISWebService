@@ -16,18 +16,10 @@
 
 package dk.dma.enav.ais.web;
 
-import com.google.gson.JsonObject;
-import dk.dma.ais.binary.SixbitException;
 import dk.dma.ais.bus.AisBus;
 import dk.dma.ais.message.AisMessage;
-import dk.dma.ais.message.AisMessageException;
 import dk.dma.ais.packet.AisPacket;
 import dk.dma.ais.sentence.SentenceException;
-import dk.dma.enav.ais.web.types.MessageWithTimeStamp;
-import dk.dma.enav.ais.web.types.ParsedMessageWithTimeStamp;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.lightcouch.CouchDbClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +28,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -45,32 +36,28 @@ import java.util.List;
 @RestController
 public class AISWebService {
 
-    @Autowired
-    private CouchDbClient couchDbClient;
-
     private final Logger log = LoggerFactory.getLogger(AISWebService.class);
 
+    @Autowired
     private AisBus aisBus;
 
     @PostConstruct
     private void postConstruct() {
-        AisBusConf aisBusConf = new AisBusConf();
-        AisBus aisBus = aisBusConf.provideAisBus();
+        //AisBusConf aisBusConf = new AisBusConf();
+        //AisBus aisBus = aisBusConf.provideAisBus();
         AisBusInitializer aisBusInitializer = new AisBusInitializer(aisBus);
         this.aisBus = aisBusInitializer.getAisBus();
     }
 
 
-    // to be able to receive message as plain string
+    /*// to be able to receive message as plain string
     @RequestMapping(method = RequestMethod.POST, path = "/ais")
     public ResponseEntity postAIS(@RequestBody String aivdmString) {
         AisMessage aisMessage;
         try {
             //aisMessage = AisPacket.readFromString(aivdmString).tryGetAisMessage();
             AisPacket aisPacket = AisPacket.readFromString(aivdmString);
-            //if (aisBus == null) log.error("baaaa");
             aisMessage = aisPacket.tryGetAisMessage();
-            couchDbClient.save(aisMessage);
             aisBus.push(aisPacket, true);
         } catch (SentenceException e) {
             log.error(e.getMessage());
@@ -80,35 +67,40 @@ public class AISWebService {
             return ResponseEntity.badRequest().body("AIS string is malformed");
         }
         return ResponseEntity.ok().build();
-    }
+    }*/
 
     // to be able to receive message as a list of messages with timestamps
-    @RequestMapping(method = RequestMethod.PUT, path = "/ais", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity putAIS(@RequestBody List<MessageWithTimeStamp> messages) {
-        Runnable worker = () -> {
-            List<ParsedMessageWithTimeStamp> toBeStored = new ArrayList<>();
-            messages.forEach(message -> {
-                try {
-                    AisPacket aisPacket = AisPacket.fromByteArray(message.getMessage());
-                    aisBus.push(aisPacket, true);
-                    AisMessage aisMessage = aisPacket.getAisMessage();//AisPacket.fromByteArray(message.getMessage()).getAisMessage();
-                    //toBeStored.add(new ParsedMessageWithTimeStamp(aisMessage, message.getTimeStamp()));
-                } catch (AisMessageException e) {
-                    log.error(e.getMessage());
-                } catch (SixbitException e) {
-                    log.error(e.getMessage());
-                }
-            });
-            couchDbClient.bulk(toBeStored, false);
-        };
-        // start parsing and saving messages to database in a new thread
+    @RequestMapping(method = RequestMethod.POST, path = "/ais", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity postAISBytes(@RequestBody List<byte[]> messages) {
+        Runnable worker = () -> messages.forEach(message -> {
+            AisPacket aisPacket = AisPacket.fromByteArray(message);
+            aisBus.push(aisPacket, false);
+        });
+        // start parsing and pushing messages to AISBus in a new thread
+        // and then send response with status 202 accepted to client
+        new Thread(worker).start();
+        return ResponseEntity.accepted().build();
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "/ais", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity postAISStrings(@RequestBody List<String> messages) {
+        Runnable worker = () -> messages.forEach(message -> {
+            AisPacket aisPacket = null;
+            try {
+                aisPacket = AisPacket.readFromString(message);
+            } catch (SentenceException e) {
+                log.error(e.getMessage());
+            }
+            aisBus.push(aisPacket, false);
+        });
+        // start parsing and pushing messages to AISBus in a new thread
         // and then send response with status 202 accepted to client
         new Thread(worker).start();
         return ResponseEntity.accepted().build();
     }
 
     // Get the past 24 hours of messages of a ship with specified mmsi number
-    @RequestMapping(method = RequestMethod.GET, path = "/last24Hours", produces = MediaType.APPLICATION_JSON_VALUE)
+    /*@RequestMapping(method = RequestMethod.GET, path = "/last24Hours", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity getLast24Hours(@RequestParam(name = "mmsi") int mmsi) {
         DateTime now = DateTime.now(DateTimeZone.UTC);
         DateTime yesterDay = now.minusDays(1);
@@ -149,5 +141,5 @@ public class AISWebService {
                 .query(JsonObject.class);
 
         return ResponseEntity.ok(couchDbClient.getGson().toJson(response));
-    }
+    }*/
 }

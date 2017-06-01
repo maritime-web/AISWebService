@@ -24,7 +24,6 @@ import org.springframework.context.annotation.ImportResource;
  * Created by Oliver on 30-10-2016.
  */
 @SpringBootApplication
-@ImportResource("context.xml")
 public class Application {
 
     public static void main(String[] args) {
