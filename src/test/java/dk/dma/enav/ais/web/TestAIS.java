@@ -53,11 +53,11 @@ import static org.junit.Assert.assertTrue;
  *
  * CouchDB must be running before tests can be run
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+//@RunWith(SpringRunner.class)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class TestAIS {
 
-    @LocalServerPort
+    //@LocalServerPort
     private int port;
 
     private static WebTarget target;
@@ -71,7 +71,7 @@ public class TestAIS {
 
     private static Response response;
 
-    @Before
+    //@Before
     public void setUp() throws FileNotFoundException {
         if (!hasBeenSetup) {
             Client client = ClientBuilder.newClient();
@@ -83,12 +83,12 @@ public class TestAIS {
         scanner = new Scanner(aisData);
     }
 
-    @After
+    //@After
     public void tearDown() {
         scanner.close();
     }
 
-    @Test
+    //@Test
     public void testPostAis() throws IOException, InterruptedException {
         String aisMessage = scanner.nextLine();
 
@@ -98,18 +98,18 @@ public class TestAIS {
         assertEquals(200, response.getStatus());
     }
 
-    @Test
-    public void testPutAis() throws InterruptedException {
-        // get the response from the PUT done on startup
-        Response response = this.response;
-
-        /* Make the thread wait a second so the Spring context does not get shut down before the message
-         * has been saved in the database
-         */
-        Thread.sleep(1000);
-
-        assertEquals(202, response.getStatus());
-    }
+//    @Test
+//    public void testPutAis() throws InterruptedException {
+//        // get the response from the PUT done on startup
+//        Response response = this.response;
+//
+//        /* Make the thread wait a second so the Spring context does not get shut down before the message
+//         * has been saved in the database
+//         */
+//        Thread.sleep(1000);
+//
+//        assertEquals(202, response.getStatus());
+//    }
 
 //    /*
 //     * Tests getting the past 24 hours of messages for the mmsi number 477553000
