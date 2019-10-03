@@ -111,22 +111,6 @@
             <name>Maven Repositories</name>
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
-        <repository>
-            <id>dma-releases</id>
-            <name>Dma Release Repository</name>
-            <url>https://repository-dma.forge.cloudbees.com/release</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>dma-snapshots</id>
-            <name>Dma Snapshot Repository</name>
-            <url>https://repository-dma.forge.cloudbees.com/snapshot</url>
-        </repository>
     </repositories>
 
     <build>
